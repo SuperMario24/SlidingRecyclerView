@@ -36,17 +36,27 @@ public class SlidingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View view = LayoutInflater.from(context).inflate(R.layout.list_item,parent,false);
-        final ViewHolder holder = new ViewHolder(view);
 
-        holder.rlTop.setOnClickListener(new View.OnClickListener() {
+        View view = LayoutInflater.from(context).inflate(R.layout.list_item,parent,false);
+        ViewHolder holder = new ViewHolder(view);
+
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        ((ViewHolder)holder).tvName.setText(list.get(position));
+
+
+        ((ViewHolder)holder).rlTop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(context,"点击："+holder.getAdapterPosition(),Toast.LENGTH_SHORT).show();
             }
         });
 
-        holder.tvEdit.setOnTouchListener(new View.OnTouchListener() {
+        //这里使用onTouchListener，因为优先级高于OnClickListener，使用OnClickListener会由于冲突问题，不是很灵敏，原因不明
+        ((ViewHolder)holder).tvEdit.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN){
@@ -60,7 +70,7 @@ public class SlidingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 return true;
             }
         });
-        holder.tvDelete.setOnTouchListener(new View.OnTouchListener() {
+        ((ViewHolder)holder).tvDelete.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN){
@@ -74,14 +84,6 @@ public class SlidingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 return true;
             }
         });
-
-
-        return holder;
-    }
-
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ((ViewHolder)holder).tvName.setText(list.get(position));
     }
 
     @Override

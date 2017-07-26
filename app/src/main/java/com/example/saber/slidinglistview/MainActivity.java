@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void OnClickListenerDelete(int position) {
                 list.remove(position);
-                slidingAdapter.notifyDataSetChanged();
+                //这里使用notifyItemRemoved(position)，如果使用notifyDataChanged，会因为复用问题，闪屏，原因不明。
+                slidingAdapter.notifyItemRemoved(position);
                 Snackbar.make(recyclerView,"删除:"+position, Snackbar.LENGTH_SHORT).show();
             }
         });
