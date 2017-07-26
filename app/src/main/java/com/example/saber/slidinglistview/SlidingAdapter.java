@@ -2,7 +2,9 @@ package com.example.saber.slidinglistview;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -17,6 +19,8 @@ import java.util.List;
  */
 
 public class SlidingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final String TAG = "SlidingAdapter";
 
     private List<String> list;
     private Context context;
@@ -38,24 +42,36 @@ public class SlidingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.rlTop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context,"dsad",Toast.LENGTH_SHORT).show();
+                Toast.makeText(context,"点击："+holder.getAdapterPosition(),Toast.LENGTH_SHORT).show();
             }
         });
 
-        holder.tvEdit.setOnClickListener(new View.OnClickListener() {
+        holder.tvEdit.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                if(onClickListenerEditOrDelete != null){
-                    onClickListenerEditOrDelete.OnClickListenerEdit(holder.getAdapterPosition());
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN){
+                    int position = holder.getAdapterPosition();
+                    Log.d(TAG, "onTouch: edit:"+position);
+                    if(onClickListenerEditOrDelete != null){
+                        onClickListenerEditOrDelete.OnClickListenerEdit(position);
+                    }
+                    return true;
                 }
+                return true;
             }
         });
-        holder.tvDelete.setOnClickListener(new View.OnClickListener() {
+        holder.tvDelete.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                if(onClickListenerEditOrDelete != null){
-                    onClickListenerEditOrDelete.OnClickListenerDelete(holder.getAdapterPosition());
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN){
+                    int position = holder.getAdapterPosition();
+                    Log.d(TAG, "onTouch: delete:"+position);
+                    if(onClickListenerEditOrDelete != null){
+                        onClickListenerEditOrDelete.OnClickListenerDelete(position);
+                    }
+                    return true;
                 }
+                return true;
             }
         });
 

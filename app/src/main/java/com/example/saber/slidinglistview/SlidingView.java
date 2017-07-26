@@ -27,6 +27,10 @@ public class SlidingView extends ViewGroup {
     private int mMoveX;
     private int mMoveY;
 
+    //手指上次滑动的位置
+    private int mLastX;
+    private int mLastY;
+
     //布局Item
     private ViewGroup mListItem;
     //布局item的长度
@@ -42,7 +46,7 @@ public class SlidingView extends ViewGroup {
     //menu的宽度
     private int mMenuWidth;
     //是否展开
-    private boolean isOpen;
+    public boolean isOpen;
 
     private Scroller scroller;
     //判定为拖动的最小移动像素数
@@ -147,39 +151,45 @@ public class SlidingView extends ViewGroup {
     }
 
     @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    
     public boolean onInterceptTouchEvent(MotionEvent e) {
 
         boolean consume = false;
-
+        int x = (int) e.getX();
+        int y = (int) e.getY();
         switch (e.getAction()){
+
             case MotionEvent.ACTION_DOWN:
+                //获取手指按下时的坐标
                 mDownX = (int) e.getX();
                 mDownY = (int) e.getY();
+                Log.d(TAG, "mDownX:"+ mDownX);
+                getParent().requestDisallowInterceptTouchEvent(true);
+                break;
             case MotionEvent.ACTION_MOVE:
                 Log.d(TAG, "onInterceptTouchEvent:ACTION_MOVE");
-                mMoveX = (int) e.getX();
-                mMoveY = (int) e.getY();
+                int deltaX = x - mLastX;
+                int deltaY = y - mLastY;
 
-                //当y方向滑动距离小于x方向时，拦截事件，交给自己处理
-                if(Math.abs(mMoveX - mDownX) > Math.abs(mMoveY - mDownY)){
-                    Log.d(TAG, "onInterceptTouchEvent");
-                    consume = true;
-                }else {
-                    consume = isOpen;
+                if(Math.abs(deltaX) > mTouchSlop || Math.abs(deltaY) > mTouchSlop){
+                    //当y方向滑动距离小于x方向时，拦截事件，交给自己处理
+                    if(Math.abs(deltaX) > Math.abs(deltaY)){
+                        Log.d(TAG, "onInterceptTouchEvent");
+                        //不允许父元素拦截事件
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                        //此时拦截事件，直接调用onTouchEvent，传入onTouchEvent的ACTION_MOVE事件中，不再走onTouchEvent的ACTION_DOWN事件
+                        consume = true;
+                    }else {
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                    }
                 }
-
 
                 break;
             case MotionEvent.ACTION_UP:
                 Log.d(TAG, "ACTION_UP");
                 break;
         }
+        mLastX = x;
+        mLastY = y;
         return consume;
     }
 
@@ -187,48 +197,49 @@ public class SlidingView extends ViewGroup {
     public boolean onTouchEvent(MotionEvent e) {
         switch (e.getAction()){
             case MotionEvent.ACTION_DOWN:
-                mDownX = (int) e.getX();
-                mDownY = (int) e.getY();
                 break;
             case MotionEvent.ACTION_MOVE:
                 mMoveX = (int) e.getX();
                 mMoveY = (int) e.getY();
-                Log.d(TAG, "22222222222");
                 Log.d(TAG, "mMoveX - mDownX:"+ (mMoveX - mDownX));
 
-                if (Math.abs(mMoveX - mDownX) > mTouchSlop){
-                    scrollBy(-(mMoveX - mDownX),0);
-                    int scrollX = getScrollX();
-                    if(scrollX > mItemLength){
-                        scrollTo(mItemLength,0);
-                        isOpen = true;
-                    }
-                    if(scrollX < 0){
-                        scrollTo(0,0);
-                        isOpen = false;
-                    }
+                scrollBy(-(mMoveX - mDownX),0);
+
+                int scrollX = getScrollX();
+                if (scrollX > mItemLength) {
+                    scrollTo(mItemLength, 0);
+                    isOpen = true;
                 }
-
-
-
-
+                if (scrollX < 0) {
+                    scrollTo(0, 0);
+                    isOpen = false;
+                }
 
                 break;
             case MotionEvent.ACTION_UP:
                 //滑动超过一定距离时，自动关闭或开启menu
                 int upX = (int) getX();
-                if(Math.abs(getScrollX())> mMenuWidth && getScrollX() > 0 || Math.abs(getScrollX())< mMenuWidth && getScrollX() < 0){
-                    smoothScrollTo(mItemLength,0);
-                    isOpen = true;
-                }else if(Math.abs(getScrollX())> mMenuWidth && getScrollX() < 0 || Math.abs(getScrollX())< mMenuWidth && getScrollX() > 0){
-                    smoothScrollTo(0,0);
-                    isOpen = false;
+                if(Math.abs(getScrollX())>= mMenuWidth && getScrollX() > 0 || Math.abs(getScrollX())< mMenuWidth && getScrollX() < 0){
+                    open();
+                }else if(Math.abs(getScrollX())>= mMenuWidth && getScrollX() < 0 || Math.abs(getScrollX())< mMenuWidth && getScrollX() > 0){
+                    close();
                 }
                 break;
         }
         mDownX = mMoveX;
         mDownY = mMoveY;
         return true;
+    }
+
+    public void open(){
+        Log.d(TAG,"OPEN");
+        smoothScrollTo(mItemLength,0);
+        isOpen = true;
+    }
+
+    public void close(){
+        smoothScrollTo(0,0);
+        isOpen = false;
     }
 
     public void smoothScrollTo(int destX,int destY){
